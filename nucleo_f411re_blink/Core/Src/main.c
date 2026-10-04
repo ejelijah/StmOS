@@ -18,6 +18,7 @@
 /* USER CODE END Header */
 /* Includes ------------------------------------------------------------------*/
 #include "main.h"
+#include "kernel_tick.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -89,7 +90,12 @@ int main(void)
   /* Initialize all configured peripherals */
   MX_GPIO_Init();
   MX_USART2_UART_Init();
+  if (KernelTick_Init() != HAL_OK)
+  {
+    Error_Handler();
+  }
   /* USER CODE BEGIN 2 */
+  uint32_t last_toggle_tick = KernelTick_Get();
 
   /* USER CODE END 2 */
 
@@ -100,8 +106,12 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
-    HAL_Delay(500);
+    uint32_t current_tick = KernelTick_Get();
+    if ((uint32_t)(current_tick - last_toggle_tick) >= (KERNEL_TICK_HZ / 2U))
+    {
+      last_toggle_tick = current_tick;
+      HAL_GPIO_TogglePin(LD2_GPIO_Port, LD2_Pin);
+    }
   }
   /* USER CODE END 3 */
 }
